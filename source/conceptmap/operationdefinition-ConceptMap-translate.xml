@@ -107,12 +107,13 @@
     <type value="string"/>
   </parameter>
   <parameter>
-    <name value="source"/>
+    <name value="inputScope"/>
     <use value="in"/>
     <min value="0"/>
     <max value="1"/>
-    <documentation value="Identifies the value set used when the concept (system/code pair) was chosen. May be a logical id, or an absolute or relative location. The source value set is an optional parameter because in some cases, the client cannot know what the source value set is. However, without a source value set, the server may be unable to safely identify an applicable concept map, and would return an error. For this reason, a source value set SHOULD always be provided. Note that servers may be able to identify an appropriate concept map without a source value set if there is a full mapping for the entire code system in the concept map, or by manual intervention"/>
-    <type value="uri"/>
+    <documentation value="Identifies the value set used when the concept (system/code pair) was chosen. The inputScope value set is an optional parameter because in some cases, the client cannot know what the source value set is. However, without a source value set, the server may be unable to safely identify an applicable concept map, and would return an error. For this reason, a source value set SHOULD always be provided. Note that servers may be able to identify an appropriate concept map without a source value set if there is a full mapping for the entire code system in the concept map, or by manual intervention"/>
+    <type value="canonical"/>
+    <targetProfile value="http://hl7.org/fhir/StructureDefinition/ValueSet"/>
   </parameter>
   <parameter>
     <name value="coding"/>
@@ -127,19 +128,20 @@
     <use value="in"/>
     <min value="0"/>
     <max value="1"/>
-    <documentation value="A full codeableConcept to validate. The server can translate any of the coding values (e.g. existing translations) as it chooses"/>
+    <documentation value="A full codeableConcept to translate. The server can translate any of the coding values (e.g. existing translations) as it chooses"/>
     <type value="CodeableConcept"/>
   </parameter>
   <parameter>
-    <name value="target"/>
+    <name value="outputScope"/>
     <use value="in"/>
     <min value="0"/>
     <max value="1"/>
-    <documentation value="Identifies the value set in which a translation is sought. May be a logical id, or an absolute or relative location. If there&#39;s no target specified, the server should return all known translations, along with their source"/>
-    <type value="uri"/>
+    <documentation value="Identifies the value set in which a translation is sought. If there&#39;s no outputScope specified, the server should return all known translations, along with their source ConceptMap"/>
+    <type value="canonical"/>
+    <targetProfile value="http://hl7.org/fhir/StructureDefinition/ValueSet"/>
   </parameter>
   <parameter>
-    <name value="targetsystem"/>
+    <name value="targetSystem"/>
     <use value="in"/>
     <min value="0"/>
     <max value="1"/>
@@ -161,12 +163,19 @@
       <type value="uri"/>
     </part>
     <part>
-      <name value="concept"/>
+      <name value="value"/>
       <use value="in"/>
       <min value="0"/>
       <max value="1"/>
       <documentation value="The value for this dependency"/>
+      <type value="code"/>
+      <type value="Coding"/>
       <type value="CodeableConcept"/>
+      <type value="boolean"/>
+      <type value="integer"/>
+      <type value="decimal"/>
+      <type value="string"/>
+      <type value="uri"/>
     </part>
   </parameter>
   <parameter>
@@ -174,7 +183,7 @@
     <use value="in"/>
     <min value="0"/>
     <max value="1"/>
-    <documentation value="if this is true, then the operation should return all the codes that might be mapped to this code. This parameter reverses the meaning of the source and target parameters"/>
+    <documentation value="if this is true, then the operation should return all the codes that might be mapped to this code. In this case, the input `code` or `coding`(s) must be belong to the `outputScope` ValueSet rather than the `inputScope` ValueSet. Furthermore, any provided `dependency` parameters are matched against `ConceptMap.group.element.target.product` rather than `ConceptMap.group.element.target.dependsOn`"/>
     <type value="boolean"/>
   </parameter>
   <parameter>
@@ -208,12 +217,50 @@
       <type value="code"/>
     </part>
     <part>
-      <name value="concept"/>
+      <name value="sourceCoding"/>
       <use value="out"/>
       <min value="0"/>
       <max value="1"/>
-      <documentation value="The translation outcome. Note that this would never have userSelected = true, since the process of translations implies that the user is not selecting the code (and only the client could know differently)"/>
+      <documentation value="The source value in the mapping. Note that this would never have userSelected = true, since the process of translations implies that the user is not selecting the code (and only the client could know differently)"/>
       <type value="Coding"/>
+    </part>
+    <part>
+      <name value="targetCoding"/>
+      <use value="out"/>
+      <min value="0"/>
+      <max value="1"/>
+      <documentation value="The target value in the mapping. Note that this would never have userSelected = true, since the process of translations implies that the user is not selecting the code (and only the client could know differently)"/>
+      <type value="Coding"/>
+    </part>
+    <part>
+      <name value="dependsOn"/>
+      <use value="out"/>
+      <min value="0"/>
+      <max value="*"/>
+      <documentation value="Another element that this mapping dependsOn"/>
+      <part>
+        <name value="element"/>
+        <use value="out"/>
+        <min value="0"/>
+        <max value="1"/>
+        <documentation value="The element for this dependency"/>
+        <type value="uri"/>
+      </part>
+      <part>
+        <name value="value"/>
+        <use value="out"/>
+        <min value="0"/>
+        <max value="1"/>
+        <documentation value="The value for this dependency"/>
+        <type value="code"/>
+        <type value="Coding"/>
+        <type value="CodeableConcept"/>
+        <type value="boolean"/>
+        <type value="integer"/>
+        <type value="decimal"/>
+        <type value="string"/>
+        <type value="uri"/>
+      </part>
     </part>
     <part>
       <name value="product"/>
@@ -230,21 +277,29 @@
         <type value="uri"/>
       </part>
       <part>
-        <name value="concept"/>
+        <name value="value"/>
         <use value="out"/>
         <min value="0"/>
         <max value="1"/>
         <documentation value="The value for this product"/>
+        <type value="code"/>
         <type value="Coding"/>
+        <type value="CodeableConcept"/>
+        <type value="boolean"/>
+        <type value="integer"/>
+        <type value="decimal"/>
+        <type value="string"/>
+        <type value="uri"/>
       </part>
     </part>
     <part>
-      <name value="source"/>
+      <name value="conceptMap"/>
       <use value="out"/>
       <min value="0"/>
       <max value="1"/>
       <documentation value="The canonical reference to the concept map from which this mapping comes from"/>
-      <type value="uri"/>
+      <type value="canonical"/>
+      <targetProfile value="http://hl7.org/fhir/StructureDefinition/ConceptMap"/>
     </part>
   </parameter>
 </OperationDefinition>
